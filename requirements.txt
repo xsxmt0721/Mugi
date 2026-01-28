@@ -1,0 +1,30 @@
+# --- 基础运算与 GPU 加速 ---
+# 锁定 torch 版本以适配 CUDA 12.4+ 运行时环境
+torch==2.4.0
+numpy==1.26.4
+pandas==2.2.2
+
+# --- 异步网关 (FastAPI 栈) ---
+# 充分利用 Python 3.12 的异步特性
+fastapi==0.111.1
+uvicorn==0.30.3
+pydantic==2.8.2
+
+# --- 语义理解与 BERT 嵌入 ---
+# 用于 BERT 向量化 (x_m) 和 DeepSeek 本地调用
+transformers==4.43.3
+tokenizers==0.19.1
+scipy==1.13.1
+scikit-learn==1.5.1
+
+# --- 图数据库存储 ---
+# 与 Neo4j 通信的核心驱动
+neo4j==5.22.0
+
+# --- 大模型 API 调用 ---
+# 适配 OpenAI 1.x 协议，支持异步调用与 DeepSeek 兼容
+openai==1.37.1
+httpx==0.27.0
+
+# --- 环境管理与依赖锁定 ---
+python-dotenv==1.0.1

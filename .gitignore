@@ -1,0 +1,18 @@
+# 1. 忽略根目录下的 .env 文件
+.env
+
+# 2. 完全忽略这三个目录及其所有内容（不保留目录结构）
+.vscode/
+/logs/
+/models/
+/neo4j_data/
+
+# 3. 忽略 /data 目录下的所有内容
+/data/GraphData/*
+/data/SyntheaData/*
+/data/VirtualPatients/*
+!/data/**/.gitkeep
+
+# --- 建议保留的 Python 通用忽略项（可选） ---
+__pycache__/
+*.py[cod]

@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # 1. Mugi 算法核心
+  mugi-core:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: Mugi_Core
+    working_dir: /app
+    volumes:
+      - .:/app
+      - ./data/SyntheaData:/app/data/SyntheaData # 挂载 Synthea 生成的数据目录
+    ports:
+      - "8000:8000"
+    environment:
+      - NEO4J_URI=bolt://mugi-db:7687
+      - NEO4J_USER=${NEO4J_USER}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
+      - MODEL_SERVER=http://mugi-models:11434
+    command: tail -f /dev/null
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - mugi-net
+    tty: true
+    stdin_open: true
+
+  # 2. 新增：Synthea 虚拟患者生成引擎
+  mugi-synthea:
+    build:
+      context: ./synthea # 指向 synthea 目录下的 Dockerfile
+      dockerfile: Dockerfile
+    container_name: Mugi_Synthea
+    volumes:
+      - ./data/SyntheaData:/app/output # 将生成结果映射到宿主机，供 Core 读取
+      # 开发使用时覆盖 server.py 以启用服务模式
+      - ./synthea/server.py:/app/server.py # 覆盖 server.py 以启用服务模式
+    networks:
+      - mugi-net
+    ports:      
+      - "5001:5000" # 暴露 Synthea 服务端口给宿主机
+
+  # 3. Neo4j 图谱数据库 (保持不变)
+  mugi-db:
+    image: neo4j:5.12
+    container_name: Mugi_Neo4j
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER}/${NEO4J_PASSWORD}
+    volumes:
+      - ./neo4j_data:/data
+      - ./logs/neo4j:/logs
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - mugi-net
+
+  # 4. 本地模型推理服务 (保持不变)
+  mugi-models:
+    image: ollama/ollama:latest
+    container_name: Mugi_Models
+    volumes:
+      - ./models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    networks:
+      - mugi-net
+
+networks:
+  mugi-net:
+    driver: bridge
